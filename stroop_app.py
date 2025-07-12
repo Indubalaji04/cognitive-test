@@ -34,7 +34,7 @@ if not st.session_state.test_started:
             st.session_state.sleep_hours = sleep_hours
             st.session_state.test_started = True
             st.session_state.trial_index = 0
-            st.experimental_rerun()
+            st.rerun()
 
 # ---------------------------
 # Test Parameters
