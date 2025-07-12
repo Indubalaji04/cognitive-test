@@ -92,7 +92,7 @@ if st.session_state.test_started and st.session_state.trial_index < num_trials:
             })
             st.session_state.trial_index += 1
             st.session_state.start_time = 0
-            st.experimental_rerun()
+            st.rerun()
 
 # ---------------------------
 # Show Results
