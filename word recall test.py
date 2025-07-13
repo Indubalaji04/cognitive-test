@@ -40,7 +40,7 @@ if not st.session_state.participant_info:
             "Profession": profession,
             "SleepHours": sleep_hours,
         }
-        st.experimental_rerun()
+        st.rerun()
 
 # Step 2: Show words one by one
 elif st.session_state.current_word_index < len(st.session_state.words):
@@ -49,12 +49,12 @@ elif st.session_state.current_word_index < len(st.session_state.words):
     st.markdown(f"<h1 style='text-align: center;'>{word}</h1>", unsafe_allow_html=True)
     time.sleep(1.5)  # Word display time
     st.session_state.current_word_index += 1
-    st.experimental_rerun()
+    st.rerun()
 
 # Step 3: Ask participant to recall words
 elif not st.session_state.show_recall_input:
     st.session_state.show_recall_input = True
-    st.experimental_rerun()
+    st.rerun()
 
 # Step 4: Accept recall input
 elif st.session_state.show_recall_input:
