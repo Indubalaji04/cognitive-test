@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import random
@@ -25,8 +24,7 @@ cards = [{"shape": random.choice(shapes), "color": random.choice(colors)} for _ 
 st.title("Wisconsin Card Sorting Test (WCST) - Simplified")
 
 if not st.session_state.participant_info:
-    with
-    st.form("participant_info_form"):
+    with st.form(key="participant_info_form"):
         st.subheader("Participant Information")
         name = st.text_input("Full Name")
         age = st.text_input("Age")
@@ -71,17 +69,7 @@ elif st.session_state.trial_num < 10:
             "ChosenCard": f"{picked['color']} {picked['shape']}",
             "Rule": rule,
             "Correct": correct,
-            "ReactionTime": round(rt, 2),
-        })
-        st.session_state.trial_num += 1
-        if st.session_state.trial_num % 3 == 0:
-            st.session_state.current_rule = random.choice(["color", "shape"])
-        st.session_state.start_time = time.time()
-        st.experimental_rerun()
+            "ReactionTime":
 
-else:
-    df = pd.DataFrame(st.session_state.responses)
-    st.success("Test completed! Download your results below.")
-    st.dataframe(df)
-    filename = f"wcst_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    st.download_button("Download Results as CSV", df.to_csv(index=False), file_name=filename, mime="text/csv")
+
+    
