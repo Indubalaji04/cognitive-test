@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import random
@@ -32,7 +31,7 @@ st.title("Flanker Test")
 
 # Step 1: Get participant info
 if not st.session_state.participant_info:
-    with st.form("participant_info"):
+    with st.form(key="participant_info_form"):
         st.subheader("Participant Information")
         name = st.text_input("Full Name")
         age = st.text_input("Age")
@@ -88,3 +87,11 @@ elif st.session_state.current_trial < len(flanker_trials):
 # Step 3: Show results
 elif st.session_state.participant_info and st.session_state.current_trial >= len(flanker_trials):
     st.success("Test completed! Download your results below.")
+    df = pd.DataFrame(st.session_state.responses)
+    st.dataframe(df)
+    filename = f"flanker_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    st.download_button("Download Results as CSV", df.to_csv(index=False), file_name=filename, mime="text/csv")
+
+
+
+       
