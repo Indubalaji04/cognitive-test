@@ -46,7 +46,7 @@ with st.form("participant_info"):
     st.session_state.current_trial = 0
     st.session_state.responses = []
     st.session_state.show_input = False
-    st.experimental_rerun()
+    st.rerun()
 
 if "participant_info" in st.session_state and st.session_state.current_trial < len(digit_sequences):
     trial_digits = digit_sequences[st.session_state.current_trial]
@@ -56,7 +56,7 @@ if "participant_info" in st.session_state and st.session_state.current_trial < l
         time.sleep(2.5 + len(trial_digits) * 0.5)
         st.session_state.start_time = time.time()
         st.session_state.show_input = True
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.subheader("Enter the sequence of numbers:")
         user_input = st.text_input("Type the numbers separated by space", key=f"input_{st.session_state.current_trial}")
@@ -73,7 +73,7 @@ if "participant_info" in st.session_state and st.session_state.current_trial < l
             })
             st.session_state.current_trial += 1
             st.session_state.show_input = False
-            st.experimental_rerun()
+            st.rerun()
 
 elif "participant_info" in st.session_state and st.session_state.current_trial >= len(digit_sequences):
     st.success("Test completed! Download your results below.")
