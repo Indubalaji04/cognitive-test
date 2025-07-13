@@ -75,7 +75,7 @@ elif st.session_state.trial_num < 10:
         if st.session_state.trial_num % 3 == 0:
             st.session_state.current_rule = random.choice(["color", "shape"])
         st.session_state.start_time = time.time()
-        st.experimental_rerun()
+        st.rerun()
 
 else:
     df = pd.DataFrame(st.session_state.responses)
