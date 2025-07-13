@@ -45,7 +45,7 @@ if submitted and name and age and profession and sleep_hours:
         "SleepHours": sleep_hours,
     }
     st.session_state.start_time = time.time()
-    st.experimental_rerun()
+    st.rerun()
 
 if "participant_info" in st.session_state and st.session_state.current_trial < len(flanker_trials):
     trial = flanker_trials[st.session_state.current_trial]
@@ -66,7 +66,7 @@ if "participant_info" in st.session_state and st.session_state.current_trial < l
             })
             st.session_state.current_trial += 1
             st.session_state.start_time = time.time()
-            st.experimental_rerun()
+            st.rerun()
     with col2:
         if st.button("Right"):
             rt = time.time() - st.session_state.start_time
@@ -80,7 +80,7 @@ if "participant_info" in st.session_state and st.session_state.current_trial < l
             })
             st.session_state.current_trial += 1
             st.session_state.start_time = time.time()
-            st.experimental_rerun()
+            st.rerun()
 
 elif "participant_info" in st.session_state and st.session_state.current_trial >= len(flanker_trials):
     st.success("Test completed! Download your results below.")
