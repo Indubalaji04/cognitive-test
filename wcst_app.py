@@ -25,7 +25,8 @@ cards = [{"shape": random.choice(shapes), "color": random.choice(colors)} for _ 
 st.title("Wisconsin Card Sorting Test (WCST) - Simplified")
 
 if not st.session_state.participant_info:
-    with st.form("participant_info"):
+    with
+    st.form("participant_info_form"):
         st.subheader("Participant Information")
         name = st.text_input("Full Name")
         age = st.text_input("Age")
