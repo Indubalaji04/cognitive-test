@@ -42,7 +42,7 @@ if not st.session_state.participant_info:
         st.session_state.trial_num = 0
         st.session_state.responses = []
         st.session_state.current_rule = random.choice(["color", "shape"])
-        st.experimental_rerun()
+        st.rerun()
 
 elif st.session_state.trial_num < 10:
     trial_card = {"shape": random.choice(shapes), "color": random.choice(colors)}
