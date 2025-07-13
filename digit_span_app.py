@@ -40,12 +40,13 @@ if not st.session_state["participant_info"]:
         sleep_hours = st.text_input("How many hours did you sleep last night?")
         submitted = st.form_submit_button("Start Test")
  if submitted and name and age and profession and sleep_hours:
-            st.session_state["participant_info"] = {
+            st.session_state["participant_info"] =
+     {
                 "Name": name,
                 "Age": age,
                 "Profession": profession,
                 "SleepHours": sleep_hours,
-            }
+     }
             st.session_state["current_trial"] = 0
             st.session_state["responses"] = []
             st.session_state["show_input"] = False
