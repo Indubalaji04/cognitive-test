@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import random
@@ -7,6 +6,7 @@ from datetime import datetime
 
 st.set_page_config(page_title="Digit Span Test", layout="centered")
 
+# Initialize session state
 if "responses" not in st.session_state:
     st.session_state.responses = []
 if "current_trial" not in st.session_state:
@@ -15,6 +15,8 @@ if "show_input" not in st.session_state:
     st.session_state.show_input = False
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
+if "participant_info" not in st.session_state:
+    st.session_state.participant_info = None
 
 # Define digit sequences
 digit_sequences = [
@@ -28,38 +30,46 @@ random.shuffle(digit_sequences)
 
 st.title("Digit Span Test")
 
-with st.form("participant_info"):
-    st.subheader("Participant Information")
-    name = st.text_input("Full Name")
-    age = st.text_input("Age")
-    profession = st.text_input("Profession")
-    sleep_hours = st.text_input("How many hours did you sleep last night?")
-    submitted = st.form_submit_button("Start Test")
+# Collect participant info
+if not st.session_state.participant_info:
+    with st.form("participant_info"):
+        st.subheader("Participant Information")
+        name = st.text_input("Full Name")
+        age = st.text_input("Age")
+        profession = st.text_input("Profession")
+        sleep_hours = st.text_input("How many hours did you sleep last night?")
+        submitted = st.form_submit_button("Start Test")
 
-    if submitted and name and age and profession and sleep_hours:
-        st.session_state.participant_info = {
-        "Name": name,
-        "Age": age,
-        "Profession": profession,
-        "SleepHours": sleep_hours,
-    }
-    st.session_state.current_trial = 0
-    st.session_state.responses = []
-    st.session_state.show_input = False
-    st.rerun()
+        if submitted and name and age and profession and sleep_hours:
+            st.session_state.participant_info = {
+                "Name": name,
+                "Age": age,
+                "Profession": profession,
+                "SleepHours": sleep_hours,
+            }
+            st.session_state.current_trial = 0
+            st.session_state.responses = []
+            st.session_state.show_input = False
+            st.rerun()
 
-if "participant_info" in st.session_state and st.session_state.current_trial < len(digit_sequences):
+# Run test if participant info is available
+elif st.session_state.current_trial < len(digit_sequences):
     trial_digits = digit_sequences[st.session_state.current_trial]
     if not st.session_state.show_input:
         st.subheader(f"Trial {st.session_state.current_trial + 1}")
-        st.markdown(f"<h1 style='text-align: center;'>{' '.join(map(str, trial_digits))}</h1>", unsafe_allow_html=True)
+        st.markdown(
+            f"<h1 style='text-align: center;'>{' '.join(map(str, trial_digits))}</h1>",
+            unsafe_allow_html=True
+        )
         time.sleep(2.5 + len(trial_digits) * 0.5)
         st.session_state.start_time = time.time()
         st.session_state.show_input = True
         st.rerun()
     else:
         st.subheader("Enter the sequence of numbers:")
-        user_input = st.text_input("Type the numbers separated by space", key=f"input_{st.session_state.current_trial}")
+        user_input = st.text_input(
+            "Type the numbers separated by space", key=f"input_{st.session_state.current_trial}"
+        )
         if st.button("Submit Answer"):
             rt = time.time() - st.session_state.start_time
             correct = " ".join(map(str, trial_digits))
@@ -75,7 +85,8 @@ if "participant_info" in st.session_state and st.session_state.current_trial < l
             st.session_state.show_input = False
             st.rerun()
 
-elif "participant_info" in st.session_state and st.session_state.current_trial >= len(digit_sequences):
+# Show results
+elif st.session_state.participant_info and st.session_state.current_trial >= len(digit_sequences):
     st.success("Test completed! Download your results below.")
     df = pd.DataFrame(st.session_state.responses)
     st.dataframe(df)
