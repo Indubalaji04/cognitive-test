@@ -47,7 +47,7 @@ if not st.session_state.participant_info:
                 "SleepHours": sleep_hours,
             }
             st.session_state.start_time = time.time()
-            st.experimental_rerun()
+            st.rerun()
 
 # Step 2: Run trials
 elif st.session_state.current_trial < len(flanker_trials):
@@ -68,7 +68,7 @@ elif st.session_state.current_trial < len(flanker_trials):
         })
         st.session_state.current_trial += 1
         st.session_state.start_time = time.time()
-        st.experimental_rerun()
+        st.rerun()
 
     if col2.button("Right"):
         rt = time.time() - st.session_state.start_time
@@ -82,7 +82,7 @@ elif st.session_state.current_trial < len(flanker_trials):
         })
         st.session_state.current_trial += 1
         st.session_state.start_time = time.time()
-        st.experimental_rerun()
+        st.rerun()
 
 # Step 3: Show results
 elif st.session_state.participant_info and st.session_state.current_trial >= len(flanker_trials):
