@@ -3,109 +3,107 @@ import random
 import time
 import pandas as pd
 
-# ---------------------------
+# Set page config
+st.set_page_config(page_title="Stroop Test", layout="centered")
+
 # Initialize session state
-# ---------------------------
-if "test_started" not in st.session_state:
-    st.session_state.test_started = False
 if "trial_index" not in st.session_state:
     st.session_state.trial_index = 0
-if "responses" not in st.session_state:
-    st.session_state.responses = []
-if "start_time" not in st.session_state:
+    st.session_state.results = []
     st.session_state.start_time = 0
+    st.session_state.completed = False
 
-# ---------------------------
-# Participant Info
-# ---------------------------
-st.title("🧠 Stroop Test")
-if not st.session_state.test_started:
-    with st.form("participant_form"):
-        name = st.text_input("Your Name")
-        age = st.number_input("Age", min_value=1, max_value=100, step=1)
-        profession = st.text_input("Profession")
-        sleep_hours = st.number_input("Hours of sleep last night", min_value=0.0, max_value=24.0, step=0.5)
-        start_btn = st.form_submit_button("Start Test")
-        if start_btn and name and profession:
-            st.session_state.name = name
-            st.session_state.age = age
-            st.session_state.profession = profession
-            st.session_state.sleep_hours = sleep_hours
-            st.session_state.test_started = True
-            st.session_state.trial_index = 0
-            st.rerun()
+# Constants
+color_map = {"RED": "red", "BLUE": "blue", "GREEN": "green", "YELLOW": "yellow"}
+color_names = list(color_map.keys())
+NUM_TRIALS = 20
 
-# ---------------------------
-# Test Parameters
-# ---------------------------
-colors = ["RED", "GREEN", "BLUE", "YELLOW"]
-color_map = {
-    "RED": "red",
-    "GREEN": "green",
-    "BLUE": "blue",
-    "YELLOW": "yellow"
-}
-num_trials = 5
+# Collect participant info
+if "name" not in st.session_state:
+    with st.form("participant_info"):
+        name = st.text_input("Enter your name:")
+        sleep_hours = st.text_input("How many hours did you sleep last night?")
+        submitted = st.form_submit_button("Start Test")
 
-# ---------------------------
-# Run Test
-# ---------------------------
-if st.session_state.test_started and st.session_state.trial_index < num_trials:
+        if submitted and name and sleep_hours:
+            st.session_state.name = name.strip()
+            st.session_state.sleep_hours = sleep_hours.strip()
+            st.experimental_rerun()
+
+# Run test
+if "name" in st.session_state and not st.session_state.completed:
     trial = st.session_state.trial_index
-    word = random.choice(colors)
-    font_color = random.choice(colors)
+    if trial < NUM_TRIALS:
+        # Generate stimuli
+        if "current_trial" not in st.session_state:
+            word = random.choice(color_names)
+            ink_color = random.choice(color_names)
+            st.session_state.current_trial = (word, ink_color)
+            st.session_state.start_time = time.time()
 
-    # Save current trial
-    st.session_state.current_word = word
-    st.session_state.current_color = font_color  # this is uppercase string like "BLUE"
+        word, ink_color = st.session_state.current_trial
 
-    st.markdown(f"### Trial {trial + 1}")
-    st.markdown(f"<h1 style='color:{color_map[font_color]};'>{word}</h1>", unsafe_allow_html=True)
+        st.markdown("### Identify the INK COLOR of the word shown below:")
+        st.markdown(
+            f"<h1 style='text-align: center; color:{color_map[ink_color]};'>{word}</h1>",
+            unsafe_allow_html=True,
+        )
 
-    if st.session_state.start_time == 0:
-        st.session_state.start_time = time.time()
+        col1, col2, col3, col4 = st.columns(4)
+        buttons = [col1.button("RED"), col2.button("GREEN"), col3.button("BLUE"), col4.button("YELLOW")]
+        response = None
+        for i, btn in enumerate(buttons):
+            if btn:
+                response = ["RED", "GREEN", "BLUE", "YELLOW"][i]
+                break
 
-    col1, col2 = st.columns(2)
-    chosen = None
-    with col1:
-        if st.button("RED"):
-            chosen = "RED"
-        if st.button("GREEN"):
-            chosen = "GREEN"
-    with col2:
-        if st.button("BLUE"):
-            chosen = "BLUE"
-        if st.button("YELLOW"):
-            chosen = "YELLOW"
+        if response:
+            rt = round(time.time() - st.session_state.start_time, 2)
+            correct = response == ink_color
+            st.session_state.results.append([
+                trial + 1, word, ink_color, color_map[ink_color], response, correct, rt
+            ])
+            st.session_state.trial_index += 1
+            del st.session_state.current_trial
+            st.experimental_rerun()
+    else:
+        st.session_state.completed = True
 
-    if chosen:
-        rt = time.time() - st.session_state.start_time
-        correct = (chosen == st.session_state.current_color)  # ✅ compare to font color
-        st.session_state.responses.append({
-            "Trial": trial + 1,
-            "Word Shown": word,
-            "Font Color": st.session_state.current_color,
-            "User Response": chosen,
-            "Correct": correct,
-            "Reaction Time (s)": round(rt, 3)
-        })
-        st.session_state.trial_index += 1
-        st.session_state.start_time = 0
-        st.rerun()
-
-# ---------------------------
-# Show Results
-# ---------------------------
-elif st.session_state.test_started and st.session_state.trial_index >= num_trials:
+# Show results
+if st.session_state.get("completed"):
     st.success("✅ Test Completed!")
 
-    df = pd.DataFrame(st.session_state.responses)
-    df["Name"] = st.session_state.name
-    df["Age"] = st.session_state.age
-    df["Profession"] = st.session_state.profession
-    df["Sleep Hours"] = st.session_state.sleep_hours
+    df = pd.DataFrame(
+        st.session_state.results,
+        columns=["Trial", "Word", "Ink Color", "Ink Code", "Response", "Correct", "Reaction Time (s)"]
+    )
 
-    st.dataframe(df)
-    filename = f"{st.session_state.name.replace(' ', '_')}_stroop_results.csv"
-    csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download Results as CSV", data=csv, file_name=filename, mime="text/csv")
+    # Color formatting in table
+    def highlight_ink(val):
+        return f'color: {val}'
+
+    styled_df = df.style.applymap(highlight_ink, subset=["Ink Code"])
+    st.dataframe(styled_df)
+
+    # CSV download
+    filename = f"{st.session_state.name.lower().replace(' ', '_')}_stroop_results.csv"
+    meta = pd.DataFrame({
+        "Participant Name": [st.session_state.name],
+        "Sleep Hours": [st.session_state.sleep_hours]
+    })
+    csv_data = pd.concat([meta.T, pd.DataFrame([[]]), df.drop(columns=["Ink Code"])])
+    csv = csv_data.to_csv(index=False, header=False)
+    st.download_button("📥 Download Results as CSV", csv, file_name=filename, mime="text/csv")
+
+    # Visual recap
+    st.markdown("### Visual Recap of Each Trial:")
+    for row in st.session_state.results:
+        trial, word, ink_color, ink_code, response, correct, rt = row
+        st.markdown(
+            f"<span style='font-size:18px;'>"
+            f"Trial {trial}: <strong style='color:{ink_code}'>{word}</strong> "
+            f"(Ink: {ink_color}, Response: {response}, "
+            f"{'✅' if correct else '❌'}, RT: {rt}s)"
+            f"</span>",
+            unsafe_allow_html=True
+        )
