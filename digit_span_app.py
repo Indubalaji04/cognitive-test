@@ -3,22 +3,24 @@ import random
 import time
 import pandas as pd
 
-# Config
+# Page setup
 st.set_page_config(page_title="Digit Span Test", layout="centered")
 
-# Initialize session
+# Initialize session state
 if "trial_index" not in st.session_state:
     st.session_state.trial_index = 0
     st.session_state.results = []
     st.session_state.completed = False
+    st.session_state.digit_sequence = None
+    st.session_state.showing = True
 
 NUM_TRIALS = 8
-MAX_DIGITS = 10
 DIGIT_LENGTH_START = 3
+MAX_DIGITS = 10
 
 # Collect participant info
 if "name" not in st.session_state:
-    with st.form("participant_form"):
+    with st.form("participant_info"):
         name = st.text_input("Enter your name:")
         sleep_hours = st.text_input("How many hours did you sleep last night?")
         submitted = st.form_submit_button("Start Test")
@@ -33,7 +35,7 @@ if "name" in st.session_state and not st.session_state.completed:
     digit_length = min(DIGIT_LENGTH_START + trial, MAX_DIGITS)
 
     if trial < NUM_TRIALS:
-        if "digit_sequence" not in st.session_state:
+        if st.session_state.digit_sequence is None:
             digits = random.sample([str(i) for i in range(10)], digit_length)
             st.session_state.digit_sequence = digits
             st.session_state.show_time = time.time()
@@ -41,12 +43,19 @@ if "name" in st.session_state and not st.session_state.completed:
 
         if st.session_state.showing:
             st.markdown(f"### Trial {trial + 1}: Memorize this number sequence")
-            st.markdown(f"<h1 style='text-align:center;'>{' '.join(st.session_state.digit_sequence)}</h1>", unsafe_allow_html=True)
+            seq = ' '.join(st.session_state.digit_sequence)
+            st.markdown(
+                f"<div style='text-align:center; font-size:48px; font-weight:bold;'>{seq}</div>",
+                unsafe_allow_html=True
+            )
+
+            # Show for a fixed time
             if time.time() - st.session_state.show_time > 2 + digit_length * 0.5:
                 st.session_state.showing = False
                 st.rerun()
+
         else:
-            st.markdown(f"### Trial {trial + 1}: Type the number sequence you saw")
+            st.markdown(f"### Trial {trial + 1}: Enter the number sequence you saw")
             with st.form("response_form"):
                 response = st.text_input("Enter digits in order (no spaces):")
                 submitted = st.form_submit_button("Submit")
@@ -62,7 +71,8 @@ if "name" in st.session_state and not st.session_state.completed:
                         rt
                     ])
                     st.session_state.trial_index += 1
-                    del st.session_state.digit_sequence
+                    st.session_state.digit_sequence = None
+                    st.session_state.showing = True
                     st.rerun()
     else:
         st.session_state.completed = True
@@ -78,7 +88,7 @@ if st.session_state.completed:
 
     st.dataframe(df)
 
-    # CSV download
+    # Download CSV
     meta = pd.DataFrame({
         "Participant Name": [st.session_state.name],
         "Sleep Hours": [st.session_state.sleep_hours]
@@ -86,15 +96,14 @@ if st.session_state.completed:
     csv_data = pd.concat([meta.T, pd.DataFrame([[]]), df])
     csv = csv_data.to_csv(index=False, header=False)
     filename = f"{st.session_state.name.lower().replace(' ', '_')}_digit_span_results.csv"
+    st.download_button("📥 Download Results as CSV", csv, file_name=filename, mime="text/csv")
 
-    st.download_button("📥 Download Results CSV", csv, file_name=filename, mime="text/csv")
-
-    # Visual summary
-    st.markdown("### Summary Recap:")
+    # Optional visual recap
+    st.markdown("### Recap:")
     for trial, correct_seq, response, correct, rt in st.session_state.results:
         st.markdown(
             f"<span style='font-size:18px;'>"
-            f"Trial {trial}: Sequence: <strong>{correct_seq}</strong> | "
+            f"Trial {trial}: <strong>{correct_seq}</strong> | "
             f"Response: <strong>{response}</strong> | "
             f"{'✅ Correct' if correct else '❌ Incorrect'} | RT: {rt}s"
             f"</span>",
