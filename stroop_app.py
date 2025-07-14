@@ -19,7 +19,7 @@ if "start_time" not in st.session_state:
 # ---------------------------
 # Participant Info
 # ---------------------------
-st.title("🧠 Stroop Test")
+st.title("ðŸ§  Stroop Test")
 if not st.session_state.test_started:
     with st.form("participant_form"):
         name = st.text_input("Your Name")
@@ -67,38 +67,38 @@ if st.session_state.test_started and st.session_state.trial_index < num_trials:
         st.session_state.start_time = time.time()
 
     col1, col2 = st.columns(2)
+    chosen = None
     with col1:
         if st.button("RED"):
             chosen = "RED"
-        elif st.button("GREEN"):
+        if st.button("GREEN"):
             chosen = "GREEN"
-        elif st.button("BLUE"):
+    with col2:
+        if st.button("BLUE"):
             chosen = "BLUE"
-        elif st.button("YELLOW"):
+        if st.button("YELLOW"):
             chosen = "YELLOW"
-        else:
-            chosen = None
 
-        if chosen:
-            rt = time.time() - st.session_state.start_time
-            correct = (chosen == font_color)
-            st.session_state.responses.append({
-                "Trial": trial + 1,
-                "Word": word,
-                "Font Color": font_color,
-                "Response": chosen,
-                "Correct": correct,
-                "Reaction Time (s)": round(rt, 3)
-            })
-            st.session_state.trial_index += 1
-            st.session_state.start_time = 0
-            st.rerun()
+    if chosen:
+        rt = time.time() - st.session_state.start_time
+        correct = (chosen == font_color)  # âœ… FIXED: check against font_color, not word
+        st.session_state.responses.append({
+            "Trial": trial + 1,
+            "Word": word,
+            "Font Color": font_color,
+            "Response": chosen,
+            "Correct": correct,
+            "Reaction Time (s)": round(rt, 3)
+        })
+        st.session_state.trial_index += 1
+        st.session_state.start_time = 0
+        st.rerun()
 
 # ---------------------------
 # Show Results
 # ---------------------------
 elif st.session_state.test_started and st.session_state.trial_index >= num_trials:
-    st.success("✅ Test Completed!")
+    st.success("âœ… Test Completed!")
 
     df = pd.DataFrame(st.session_state.responses)
     st.dataframe(df)
@@ -111,4 +111,4 @@ elif st.session_state.test_started and st.session_state.trial_index >= num_trial
     df["Sleep Hours"] = st.session_state.sleep_hours
 
     csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download Results as CSV", data=csv, file_name=filename, mime="text/csv")
+    st.download_button("ðŸ“¥ Download Results as CSV", data=csv, file_name=filename, mime="text/csv")
