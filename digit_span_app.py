@@ -3,31 +3,26 @@ import random
 import time
 import pandas as pd
 
-# Page setup
+# Config
 st.set_page_config(page_title="Digit Span Test", layout="centered")
 
-# -----------------------------
-# Configuration Parameters
-# -----------------------------
+# Parameters
 NUM_TRIALS = 8
 DIGIT_LENGTH_START = 3
 MAX_DIGITS = 10
-DISPLAY_BASE_TIME = 1      # Reduced from 2 to 1 second
-DISPLAY_PER_DIGIT = 0.3    # Reduced from 0.5 to 0.3 seconds
+DISPLAY_BASE_TIME = 1
+DISPLAY_PER_DIGIT = 0.3
 
-# -----------------------------
 # Initialize session state
-# -----------------------------
 if "trial_index" not in st.session_state:
     st.session_state.trial_index = 0
     st.session_state.results = []
     st.session_state.completed = False
     st.session_state.digit_sequence = None
     st.session_state.showing = True
+    st.session_state.show_time = 0
 
-# -----------------------------
-# Collect participant info
-# -----------------------------
+# Participant info
 if "name" not in st.session_state:
     with st.form("participant_info"):
         name = st.text_input("Enter your name:")
@@ -38,20 +33,20 @@ if "name" not in st.session_state:
             st.session_state.sleep_hours = sleep_hours.strip()
             st.rerun()
 
-# -----------------------------
 # Run test
-# -----------------------------
 if "name" in st.session_state and not st.session_state.completed:
     trial = st.session_state.trial_index
     digit_length = min(DIGIT_LENGTH_START + trial, MAX_DIGITS)
 
     if trial < NUM_TRIALS:
+        # Generate new sequence if needed
         if st.session_state.digit_sequence is None:
             digits = random.sample([str(i) for i in range(10)], digit_length)
             st.session_state.digit_sequence = digits
             st.session_state.show_time = time.time()
             st.session_state.showing = True
 
+        # Show digit sequence
         if st.session_state.showing:
             st.markdown(f"### Trial {trial + 1}: Memorize this number sequence")
             seq = ' '.join(st.session_state.digit_sequence)
@@ -60,7 +55,6 @@ if "name" in st.session_state and not st.session_state.completed:
                 unsafe_allow_html=True
             )
 
-            # ⏱ Adjusted display time here
             if time.time() - st.session_state.show_time > DISPLAY_BASE_TIME + digit_length * DISPLAY_PER_DIGIT:
                 st.session_state.showing = False
                 st.rerun()
@@ -70,17 +64,19 @@ if "name" in st.session_state and not st.session_state.completed:
             with st.form("response_form"):
                 response = st.text_input("Enter digits in order (no spaces):")
                 submitted = st.form_submit_button("Submit")
+
                 if submitted:
                     correct_seq = ''.join(st.session_state.digit_sequence)
-                    is_correct = response.strip() == correct_seq
+                    user_resp = response.strip()
+                    is_correct = user_resp == correct_seq
                     rt = round(time.time() - st.session_state.show_time, 2)
+
+                    # Store result
                     st.session_state.results.append([
-                        trial + 1,
-                        correct_seq,
-                        response.strip(),
-                        is_correct,
-                        rt
+                        trial + 1, correct_seq, user_resp, is_correct, rt
                     ])
+
+                    # Move to next trial
                     st.session_state.trial_index += 1
                     st.session_state.digit_sequence = None
                     st.session_state.showing = True
@@ -88,9 +84,7 @@ if "name" in st.session_state and not st.session_state.completed:
     else:
         st.session_state.completed = True
 
-# -----------------------------
 # Show results
-# -----------------------------
 if st.session_state.completed:
     st.success("✅ Digit Span Test Completed!")
 
@@ -101,7 +95,7 @@ if st.session_state.completed:
 
     st.dataframe(df)
 
-    # CSV download
+    # Download CSV
     meta = pd.DataFrame({
         "Participant Name": [st.session_state.name],
         "Sleep Hours": [st.session_state.sleep_hours]
@@ -109,9 +103,9 @@ if st.session_state.completed:
     csv_data = pd.concat([meta.T, pd.DataFrame([[]]), df])
     csv = csv_data.to_csv(index=False, header=False)
     filename = f"{st.session_state.name.lower().replace(' ', '_')}_digit_span_results.csv"
-    st.download_button("📥 Download Results as CSV", csv, file_name=filename, mime="text/csv")
+    st.download_button("📥 Download Results", csv, file_name=filename, mime="text/csv")
 
-    # Visual recap
+    # Recap
     st.markdown("### Recap:")
     for trial, correct_seq, response, correct, rt in st.session_state.results:
         st.markdown(
