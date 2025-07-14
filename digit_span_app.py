@@ -6,7 +6,18 @@ import pandas as pd
 # Page setup
 st.set_page_config(page_title="Digit Span Test", layout="centered")
 
+# -----------------------------
+# Configuration Parameters
+# -----------------------------
+NUM_TRIALS = 8
+DIGIT_LENGTH_START = 3
+MAX_DIGITS = 10
+DISPLAY_BASE_TIME = 1      # Reduced from 2 to 1 second
+DISPLAY_PER_DIGIT = 0.3    # Reduced from 0.5 to 0.3 seconds
+
+# -----------------------------
 # Initialize session state
+# -----------------------------
 if "trial_index" not in st.session_state:
     st.session_state.trial_index = 0
     st.session_state.results = []
@@ -14,11 +25,9 @@ if "trial_index" not in st.session_state:
     st.session_state.digit_sequence = None
     st.session_state.showing = True
 
-NUM_TRIALS = 8
-DIGIT_LENGTH_START = 3
-MAX_DIGITS = 10
-
+# -----------------------------
 # Collect participant info
+# -----------------------------
 if "name" not in st.session_state:
     with st.form("participant_info"):
         name = st.text_input("Enter your name:")
@@ -29,7 +38,9 @@ if "name" not in st.session_state:
             st.session_state.sleep_hours = sleep_hours.strip()
             st.rerun()
 
+# -----------------------------
 # Run test
+# -----------------------------
 if "name" in st.session_state and not st.session_state.completed:
     trial = st.session_state.trial_index
     digit_length = min(DIGIT_LENGTH_START + trial, MAX_DIGITS)
@@ -49,8 +60,8 @@ if "name" in st.session_state and not st.session_state.completed:
                 unsafe_allow_html=True
             )
 
-            # Show for a fixed time
-            if time.time() - st.session_state.show_time > 2 + digit_length * 0.5:
+            # ⏱ Adjusted display time here
+            if time.time() - st.session_state.show_time > DISPLAY_BASE_TIME + digit_length * DISPLAY_PER_DIGIT:
                 st.session_state.showing = False
                 st.rerun()
 
@@ -77,7 +88,9 @@ if "name" in st.session_state and not st.session_state.completed:
     else:
         st.session_state.completed = True
 
+# -----------------------------
 # Show results
+# -----------------------------
 if st.session_state.completed:
     st.success("✅ Digit Span Test Completed!")
 
@@ -88,7 +101,7 @@ if st.session_state.completed:
 
     st.dataframe(df)
 
-    # Download CSV
+    # CSV download
     meta = pd.DataFrame({
         "Participant Name": [st.session_state.name],
         "Sleep Hours": [st.session_state.sleep_hours]
@@ -98,7 +111,7 @@ if st.session_state.completed:
     filename = f"{st.session_state.name.lower().replace(' ', '_')}_digit_span_results.csv"
     st.download_button("📥 Download Results as CSV", csv, file_name=filename, mime="text/csv")
 
-    # Optional visual recap
+    # Visual recap
     st.markdown("### Recap:")
     for trial, correct_seq, response, correct, rt in st.session_state.results:
         st.markdown(
