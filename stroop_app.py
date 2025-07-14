@@ -28,7 +28,7 @@ if "name" not in st.session_state:
         if submitted and name and sleep_hours:
             st.session_state.name = name.strip()
             st.session_state.sleep_hours = sleep_hours.strip()
-            st.experimental_rerun()
+            st.rerun()
 
 # Run test
 if "name" in st.session_state and not st.session_state.completed:
@@ -65,7 +65,7 @@ if "name" in st.session_state and not st.session_state.completed:
             ])
             st.session_state.trial_index += 1
             del st.session_state.current_trial
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.session_state.completed = True
 
