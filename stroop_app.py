@@ -1,4 +1,3 @@
-
 import streamlit as st
 import random
 import time
@@ -19,7 +18,7 @@ if "start_time" not in st.session_state:
 # ---------------------------
 # Participant Info
 # ---------------------------
-st.title("ðŸ§  Stroop Test")
+st.title("🧠 Stroop Test")
 if not st.session_state.test_started:
     with st.form("participant_form"):
         name = st.text_input("Your Name")
@@ -56,9 +55,9 @@ if st.session_state.test_started and st.session_state.trial_index < num_trials:
     word = random.choice(colors)
     font_color = random.choice(colors)
 
-    # Save current trial word/color
+    # Save current trial
     st.session_state.current_word = word
-    st.session_state.current_color = font_color
+    st.session_state.current_color = font_color  # this is uppercase string like "BLUE"
 
     st.markdown(f"### Trial {trial + 1}")
     st.markdown(f"<h1 style='color:{color_map[font_color]};'>{word}</h1>", unsafe_allow_html=True)
@@ -81,12 +80,12 @@ if st.session_state.test_started and st.session_state.trial_index < num_trials:
 
     if chosen:
         rt = time.time() - st.session_state.start_time
-        correct = (chosen == font_color)  # âœ… FIXED: check against font_color, not word
+        correct = (chosen == st.session_state.current_color)  # ✅ compare to font color
         st.session_state.responses.append({
             "Trial": trial + 1,
-            "Word": word,
-            "Font Color": font_color,
-            "Response": chosen,
+            "Word Shown": word,
+            "Font Color": st.session_state.current_color,
+            "User Response": chosen,
             "Correct": correct,
             "Reaction Time (s)": round(rt, 3)
         })
@@ -98,17 +97,15 @@ if st.session_state.test_started and st.session_state.trial_index < num_trials:
 # Show Results
 # ---------------------------
 elif st.session_state.test_started and st.session_state.trial_index >= num_trials:
-    st.success("âœ… Test Completed!")
+    st.success("✅ Test Completed!")
 
     df = pd.DataFrame(st.session_state.responses)
-    st.dataframe(df)
-
-    # Save to CSV
-    filename = f"{st.session_state.name.replace(' ', '_')}_stroop_results.csv"
     df["Name"] = st.session_state.name
     df["Age"] = st.session_state.age
     df["Profession"] = st.session_state.profession
     df["Sleep Hours"] = st.session_state.sleep_hours
 
+    st.dataframe(df)
+    filename = f"{st.session_state.name.replace(' ', '_')}_stroop_results.csv"
     csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button("ðŸ“¥ Download Results as CSV", data=csv, file_name=filename, mime="text/csv")
+    st.download_button("📥 Download Results as CSV", data=csv, file_name=filename, mime="text/csv")
